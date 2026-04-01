@@ -1,24 +1,21 @@
 // content.js
 
-const API_URL_KEY = "apiUrl";
+const API_URL = "https://purchasing-agent-bay.vercel.app/api/save-post";
 
-// 等頁面載入完再執行
 function init() {
   injectButtons();
-  // 監聽 Facebook 動態載入新貼文
   const observer = new MutationObserver(() => injectButtons());
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function injectButtons() {
-  // 用「所有留言」文字定位插入點
   const targets = [...document.querySelectorAll('span')]
     .filter(el => el.innerText.trim() === '所有留言');
 
   targets.forEach(target => {
     const wrapper = target.closest('div');
     if (!wrapper) return;
-    if (wrapper.parentElement.querySelector('.daigou-btn')) return; // 避免重複
+    if (wrapper.parentElement.querySelector('.daigou-btn')) return;
 
     const btn = document.createElement('button');
     btn.className = 'daigou-btn';
@@ -44,24 +41,14 @@ function injectButtons() {
     wrapper.parentElement.insertBefore(btn, wrapper);
     wrapper.parentElement.insertBefore(status, wrapper);
 
-    // 找對應的主貼文 article
     const article = btn.closest('div[role="article"]');
     btn.addEventListener('click', () => handleClick(article || document.body, btn, status));
   });
 }
+
 async function handleClick(article, btn, status) {
   btn.disabled = true;
   status.innerText = "⏳ 抓取中...";
-
-  // 讀取 API 網址
-  const stored = await chrome.storage.local.get(API_URL_KEY);
-  const apiUrl = stored[API_URL_KEY];
-
-  if (!apiUrl) {
-    status.innerText = "❌ 請先在擴充功能圖示設定 API 網址";
-    btn.disabled = false;
-    return;
-  }
 
   try {
     // ── 抓貼文 ID ──
@@ -116,7 +103,7 @@ async function handleClick(article, btn, status) {
     }
 
     // ── 送到 API ──
-    const res = await fetch(apiUrl, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ post_id, post_url: url, post_content, comments }),
@@ -135,7 +122,6 @@ async function handleClick(article, btn, status) {
   btn.disabled = false;
 }
 
-// 啟動
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {
