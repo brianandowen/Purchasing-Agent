@@ -11,41 +11,42 @@ function init() {
 }
 
 function injectButtons() {
-  document.querySelectorAll('div[role="article"]').forEach((article) => {
-    if (article.querySelector(".daigou-btn")) return;
+  // 用「所有留言」文字定位插入點
+  const targets = [...document.querySelectorAll('span')]
+    .filter(el => el.innerText.trim() === '所有留言');
 
-    // 主貼文特徵：aria-label 是 null，且裡面有子 article（留言）
-    const label = article.getAttribute("aria-label");
-    if (label !== null) return; // 有 label 的都是留言，跳過
+  targets.forEach(target => {
+    const wrapper = target.closest('div');
+    if (!wrapper) return;
+    if (wrapper.parentElement.querySelector('.daigou-btn')) return; // 避免重複
 
-    const hasChildArticles = article.querySelector('div[role="article"]');
-    if (!hasChildArticles) return; // 沒有子 article 的也跳過
-
-    const btn = document.createElement("button");
-    btn.className = "daigou-btn";
-    btn.innerText = "🛒 抓取 +1 留言";
+    const btn = document.createElement('button');
+    btn.className = 'daigou-btn';
+    btn.innerText = '🛒 抓取 +1 留言';
     btn.style.cssText = `
-      display: block;
-      width: calc(100% - 24px);
-      margin: 8px 12px;
-      padding: 10px;
       background: #1877f2;
       color: white;
+      padding: 8px 16px;
       border: none;
       border-radius: 8px;
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
+      width: 100%;
+      margin-bottom: 8px;
+      display: block;
     `;
 
-    const status = document.createElement("div");
-    status.className = "daigou-status";
-    status.style.cssText = `text-align:center; font-size:12px; color:#555; margin: 0 12px 8px;`;
+    const status = document.createElement('div');
+    status.className = 'daigou-status';
+    status.style.cssText = `text-align:center; font-size:12px; color:#555; margin-bottom:4px;`;
 
-    article.appendChild(btn);
-    article.appendChild(status);
+    wrapper.parentElement.insertBefore(btn, wrapper);
+    wrapper.parentElement.insertBefore(status, wrapper);
 
-    btn.addEventListener("click", () => handleClick(article, btn, status));
+    // 找對應的主貼文 article
+    const article = btn.closest('div[role="article"]');
+    btn.addEventListener('click', () => handleClick(article || document.body, btn, status));
   });
 }
 async function handleClick(article, btn, status) {
