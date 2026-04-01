@@ -1,8 +1,6 @@
-// save-post.js
-import { neon } from "@neondatabase/serverless";
+const { neon } = require("@neondatabase/serverless");
 
-export default async function handler(req, res) {
-  // 允許 Chrome Extension 跨域呼叫
+module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -18,7 +16,6 @@ export default async function handler(req, res) {
 
     const sql = neon(process.env.DATABASE_URL);
 
-    // 寫入貼文（若已存在則更新）
     await sql`
       INSERT INTO posts (post_id, post_url, post_content)
       VALUES (${post_id}, ${post_url}, ${post_content})
@@ -27,7 +24,6 @@ export default async function handler(req, res) {
             post_url = EXCLUDED.post_url
     `;
 
-    // 逐一寫入留言
     let savedCount = 0;
     for (const c of comments) {
       await sql`
@@ -45,4 +41,4 @@ export default async function handler(req, res) {
     console.error(err);
     return res.status(500).json({ error: err.message });
   }
-}
+};
