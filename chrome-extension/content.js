@@ -17,9 +17,8 @@ function injectButtons() {
     if (article.querySelector(".daigou-btn")) return;
 
     // 找「所有留言」或「留言」的區塊，插在它上面
-    const commentSection = article.querySelector(
-      '[aria-label="所有留言"], [aria-label="留言"]'
-    ) || article.querySelector('div[role="list"]');
+const commentSection = article.querySelector('[aria-label="留言"]') ||
+                       article.querySelector('div[role="list"]');
 
     if (!commentSection) return;
 
