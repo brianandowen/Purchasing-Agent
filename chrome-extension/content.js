@@ -11,17 +11,15 @@ function init() {
 }
 
 function injectButtons() {
-  // 只找「有留言的主貼文」，排除留言本身的 article
   document.querySelectorAll('div[role="article"]').forEach((article) => {
     if (article.querySelector(".daigou-btn")) return;
 
-    // 排除留言的 article（有 aria-label 包含「的留言」）
-    const label = article.getAttribute("aria-label") || "";
-    if (label.includes("的留言")) return;
+    // 主貼文特徵：aria-label 是 null，且裡面有子 article（留言）
+    const label = article.getAttribute("aria-label");
+    if (label !== null) return; // 有 label 的都是留言，跳過
 
-    // 確認這是主貼文（裡面有留言列表）
-    const hasComments = article.querySelector('div[role="article"]');
-    if (!hasComments) return;
+    const hasChildArticles = article.querySelector('div[role="article"]');
+    if (!hasChildArticles) return; // 沒有子 article 的也跳過
 
     const btn = document.createElement("button");
     btn.className = "daigou-btn";
