@@ -55,7 +55,7 @@ const commentSection = article.querySelector('[aria-label="留言"]') ||
     wrapper.appendChild(status);
 
     // 插在留言區塊前面
-    commentSection.parentElement.insertBefore(wrapper, commentSection);
+article.insertBefore(wrapper, article.firstChild);
 
     btn.addEventListener("click", () => handleClick(article, btn, status));
   });
