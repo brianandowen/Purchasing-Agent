@@ -11,18 +11,25 @@ function init() {
 }
 
 function injectButtons() {
-  // 找所有貼文
-  const articles = document.querySelectorAll('div[role="article"]');
+  // 只抓最外層的貼文，不抓留言裡面的 article
+  const articles = document.querySelectorAll(
+    'div[role="feed"] > div > div > div[role="article"]'
+  );
 
-  articles.forEach((article) => {
-    // 避免重複插入
+  // 如果是單篇貼文頁面，用這個
+  const singleArticle = document.querySelector(
+    'div[data-pagelet="permalink_reaction_pagelet"]'
+  )?.closest('div[role="article"]');
+
+  const targets = articles.length > 0
+    ? Array.from(articles)
+    : singleArticle
+    ? [singleArticle]
+    : [];
+
+  targets.forEach((article) => {
     if (article.querySelector(".daigou-btn")) return;
 
-    // 只在有留言的貼文插入（有 aria-label 包含「留言」的）
-    const hasComments = article.querySelector('div[aria-label*="留言"]');
-    if (!hasComments) return;
-
-    // 建立按鈕
     const btn = document.createElement("button");
     btn.className = "daigou-btn";
     btn.innerText = "🛒 抓取留言";
@@ -38,29 +45,19 @@ function injectButtons() {
       font-weight: bold;
     `;
 
-    // 建立狀態文字
     const status = document.createElement("span");
     status.className = "daigou-status";
-    status.style.cssText = `
-      margin-left: 8px;
-      font-size: 12px;
-      color: #555;
-    `;
+    status.style.cssText = `margin-left: 8px; font-size: 12px; color: #555;`;
 
-    // 按鈕容器
     const wrapper = document.createElement("div");
     wrapper.style.cssText = "padding: 4px 12px;";
     wrapper.appendChild(btn);
     wrapper.appendChild(status);
-
-    // 插入到貼文底部
     article.appendChild(wrapper);
 
-    // 按鈕點擊事件
     btn.addEventListener("click", () => handleClick(article, btn, status));
   });
 }
-
 async function handleClick(article, btn, status) {
   btn.disabled = true;
   status.innerText = "⏳ 抓取中...";
