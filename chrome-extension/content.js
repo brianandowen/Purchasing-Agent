@@ -11,51 +11,41 @@ function init() {
 }
 
 function injectButtons() {
-  const articles = document.querySelectorAll('div[role="article"]');
-
-  articles.forEach((article) => {
+  // 只找「有留言的主貼文」，排除留言本身的 article
+  document.querySelectorAll('div[role="article"]').forEach((article) => {
     if (article.querySelector(".daigou-btn")) return;
 
-    // 找「所有留言」或「留言」的區塊，插在它上面
-const commentSection = article.querySelector('[aria-label="留言"]') ||
-                       article.querySelector('div[role="list"]');
+    // 排除留言的 article（有 aria-label 包含「的留言」）
+    const label = article.getAttribute("aria-label") || "";
+    if (label.includes("的留言")) return;
 
-    if (!commentSection) return;
+    // 確認這是主貼文（裡面有留言列表）
+    const hasComments = article.querySelector('div[role="article"]');
+    if (!hasComments) return;
 
     const btn = document.createElement("button");
     btn.className = "daigou-btn";
-    btn.innerText = "🛒 抓取留言";
+    btn.innerText = "🛒 抓取 +1 留言";
     btn.style.cssText = `
       display: block;
-      width: 100%;
-      padding: 8px;
-      margin: 4px 0;
+      width: calc(100% - 24px);
+      margin: 8px 12px;
+      padding: 10px;
       background: #1877f2;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
-      text-align: center;
     `;
 
     const status = document.createElement("div");
     status.className = "daigou-status";
-    status.style.cssText = `
-      text-align: center;
-      font-size: 12px;
-      color: #555;
-      padding: 2px 0 4px;
-    `;
+    status.style.cssText = `text-align:center; font-size:12px; color:#555; margin: 0 12px 8px;`;
 
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = "padding: 4px 12px;";
-    wrapper.appendChild(btn);
-    wrapper.appendChild(status);
-
-    // 插在留言區塊前面
-article.insertBefore(wrapper, article.firstChild);
+    article.appendChild(btn);
+    article.appendChild(status);
 
     btn.addEventListener("click", () => handleClick(article, btn, status));
   });
