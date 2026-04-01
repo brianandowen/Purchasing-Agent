@@ -11,49 +11,52 @@ function init() {
 }
 
 function injectButtons() {
-  // 只抓最外層的貼文，不抓留言裡面的 article
-  const articles = document.querySelectorAll(
-    'div[role="feed"] > div > div > div[role="article"]'
-  );
+  const articles = document.querySelectorAll('div[role="article"]');
 
-  // 如果是單篇貼文頁面，用這個
-  const singleArticle = document.querySelector(
-    'div[data-pagelet="permalink_reaction_pagelet"]'
-  )?.closest('div[role="article"]');
-
-  const targets = articles.length > 0
-    ? Array.from(articles)
-    : singleArticle
-    ? [singleArticle]
-    : [];
-
-  targets.forEach((article) => {
+  articles.forEach((article) => {
     if (article.querySelector(".daigou-btn")) return;
+
+    // 找「所有留言」或「留言」的區塊，插在它上面
+    const commentSection = article.querySelector(
+      '[aria-label="所有留言"], [aria-label="留言"]'
+    ) || article.querySelector('div[role="list"]');
+
+    if (!commentSection) return;
 
     const btn = document.createElement("button");
     btn.className = "daigou-btn";
     btn.innerText = "🛒 抓取留言";
     btn.style.cssText = `
-      margin: 8px 0;
-      padding: 6px 14px;
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
       background: #1877f2;
       color: white;
       border: none;
       border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
+      font-size: 14px;
       font-weight: bold;
+      cursor: pointer;
+      text-align: center;
     `;
 
-    const status = document.createElement("span");
+    const status = document.createElement("div");
     status.className = "daigou-status";
-    status.style.cssText = `margin-left: 8px; font-size: 12px; color: #555;`;
+    status.style.cssText = `
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+      padding: 2px 0 4px;
+    `;
 
     const wrapper = document.createElement("div");
     wrapper.style.cssText = "padding: 4px 12px;";
     wrapper.appendChild(btn);
     wrapper.appendChild(status);
-    article.appendChild(wrapper);
+
+    // 插在留言區塊前面
+    commentSection.parentElement.insertBefore(wrapper, commentSection);
 
     btn.addEventListener("click", () => handleClick(article, btn, status));
   });
