@@ -9,6 +9,8 @@ function init() {
 }
 
 function injectButtons() {
+      if (!window.location.href.includes('/permalink/') && 
+      !window.location.href.includes('/posts/')) return;
   const targets = [...document.querySelectorAll('span')]
     .filter(el => el.innerText.trim() === '所有留言');
 
