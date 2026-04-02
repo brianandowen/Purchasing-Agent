@@ -71,13 +71,20 @@ async function handleClick(btn, status) {
     else post_id = "post_" + Date.now();
 
     // ── 抓貼文內文 ──
-    let post_content = "";
-    if (targetArticle) {
-      const contentEl =
-        targetArticle.querySelector('[data-ad-preview="message"]') ||
-        targetArticle.querySelector('div[dir="auto"]');
-      if (contentEl) post_content = contentEl.innerText.trim();
+// ── 抓貼文內文（直接從 dialog 找，不用 article）──
+let post_content = "";
+const dialogEl = document.querySelector('[role="dialog"]');
+if (dialogEl) {
+  // 找最長的 div[dir="auto"]，通常就是貼文內文
+  let maxLen = 0;
+  dialogEl.querySelectorAll('div[dir="auto"]').forEach(el => {
+    const t = el.innerText.trim();
+    if (t.length > maxLen && !t.includes('+')) {
+      maxLen = t.length;
+      post_content = t;
     }
+  });
+}
 
     // ── 抓留言 ──
     const comments = [];
