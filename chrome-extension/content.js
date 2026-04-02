@@ -9,9 +9,6 @@ function init() {
 }
 
 function injectButtons() {
-  // 只在單篇貼文頁面執行
-  if (!window.location.href.includes('/permalink/') && 
-      !window.location.href.includes('/posts/')) return
   const targets = [...document.querySelectorAll('span')]
     .filter(el => el.innerText.trim() === '所有留言');
 
@@ -44,16 +41,21 @@ function injectButtons() {
     wrapper.parentElement.insertBefore(btn, wrapper);
     wrapper.parentElement.insertBefore(status, wrapper);
 
-    const article = btn.closest('div[role="article"]');
-    btn.addEventListener('click', () => handleClick(article || document.body, btn, status));
+    btn.addEventListener('click', () => handleClick(btn, status));
   });
 }
 
-async function handleClick(article, btn, status) {
+async function handleClick(btn, status) {
   btn.disabled = true;
   status.innerText = "⏳ 抓取中...";
 
   try {
+    // ── 鎖定正確的 article（彈窗優先）──
+    const dialog = document.querySelector('[role="dialog"]');
+    const targetArticle = dialog
+      ? dialog.querySelector('div[role="article"]')
+      : btn.closest('div[role="article"]');
+
     // ── 抓貼文 ID ──
     const url = window.location.href;
     let post_id = "";
@@ -67,17 +69,21 @@ async function handleClick(article, btn, status) {
     else if (m4) post_id = m4[1];
     else post_id = "post_" + Date.now();
 
-    // ── 抓貼文內文 ──
+    // ── 抓貼文內文（從彈窗的 article 裡找）──
     let post_content = "";
-    const contentEl = article.querySelector('[data-ad-preview="message"]') ||
-                      article.querySelector('div[dir="auto"]');
-    if (contentEl) post_content = contentEl.innerText.trim();
+    if (targetArticle) {
+      const contentEl =
+        targetArticle.querySelector('[data-ad-preview="message"]') ||
+        targetArticle.querySelector('div[dir="auto"]');
+      if (contentEl) post_content = contentEl.innerText.trim();
+    }
 
-    // ── 抓留言 ──
+    // ── 抓留言（從彈窗的 article 裡找）──
     const comments = [];
     const seen = new Set();
+    const searchRoot = targetArticle || document;
 
-    article.querySelectorAll('div[role="article"][aria-label]').forEach((block) => {
+    searchRoot.querySelectorAll('div[role="article"][aria-label]').forEach((block) => {
       const label = block.getAttribute("aria-label") || "";
       const nameMatch = label.match(/^(.+?)的留言/);
       if (!nameMatch) return;
