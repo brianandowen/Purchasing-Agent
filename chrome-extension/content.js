@@ -50,11 +50,12 @@ async function handleClick(btn, status) {
   status.innerText = "⏳ 抓取中...";
 
   try {
-    // ── 鎖定正確的 article（彈窗優先）──
+    // ── 鎖定彈窗 ──
     const dialog = document.querySelector('[role="dialog"]');
     const targetArticle = dialog
       ? dialog.querySelector('div[role="article"]')
       : btn.closest('div[role="article"]');
+    const searchRoot = dialog || targetArticle || document;
 
     // ── 抓貼文 ID ──
     const url = window.location.href;
@@ -69,7 +70,7 @@ async function handleClick(btn, status) {
     else if (m4) post_id = m4[1];
     else post_id = "post_" + Date.now();
 
-    // ── 抓貼文內文（從彈窗的 article 裡找）──
+    // ── 抓貼文內文 ──
     let post_content = "";
     if (targetArticle) {
       const contentEl =
@@ -78,10 +79,9 @@ async function handleClick(btn, status) {
       if (contentEl) post_content = contentEl.innerText.trim();
     }
 
-    // ── 抓留言（從彈窗的 article 裡找）──
+    // ── 抓留言 ──
     const comments = [];
     const seen = new Set();
-    const searchRoot = targetArticle || document;
 
     searchRoot.querySelectorAll('div[role="article"][aria-label]').forEach((block) => {
       const label = block.getAttribute("aria-label") || "";
