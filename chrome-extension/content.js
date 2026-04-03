@@ -70,16 +70,18 @@ async function handleClick(btn, status) {
     else if (m4) post_id = m4[1];
     else post_id = "post_" + Date.now();
 
-    // ── 抓貼文內文 ──
-// ── 抓貼文內文（直接從 dialog 找，不用 article）──
+// ── 抓貼文內文（從 dialog 找最長的非留言文字）──
 let post_content = "";
 const dialogEl = document.querySelector('[role="dialog"]');
 if (dialogEl) {
-  // 找最長的 div[dir="auto"]，通常就是貼文內文
   let maxLen = 0;
   dialogEl.querySelectorAll('div[dir="auto"]').forEach(el => {
+    // 排除留言裡面的 div（留言的父層有 role="article" 且有 aria-label）
+    const isComment = el.closest('div[role="article"][aria-label]');
+    if (isComment) return;
+    
     const t = el.innerText.trim();
-    if (t.length > maxLen && !t.includes('+')) {
+    if (t.length > maxLen) {
       maxLen = t.length;
       post_content = t;
     }
