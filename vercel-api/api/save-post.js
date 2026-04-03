@@ -16,21 +16,21 @@ module.exports = async function handler(req, res) {
 
     const sql = neon(process.env.DATABASE_URL);
 
-await sql`
-  INSERT INTO fb_posts (post_id, post_url, post_content)
-  ...
-  ON CONFLICT (post_id) DO UPDATE
-    SET post_content = EXCLUDED.post_content,
-        post_url = EXCLUDED.post_url
-`;
+    await sql`
+      INSERT INTO fb_posts (post_id, post_url, post_content)
+      VALUES (${post_id}, ${post_url}, ${post_content})
+      ON CONFLICT (post_id) DO UPDATE
+        SET post_content = EXCLUDED.post_content,
+            post_url = EXCLUDED.post_url
+    `;
 
     let savedCount = 0;
     for (const c of comments) {
-await sql`
-  INSERT INTO fb_comments (post_id, fb_name, comment_text, quantity)
-  VALUES (${post_id}, ${c.name}, ${c.text}, ${c.quantity})
-  ON CONFLICT DO NOTHING
-`;
+      await sql`
+        INSERT INTO fb_comments (post_id, fb_name, comment_text, quantity)
+        VALUES (${post_id}, ${c.name}, ${c.text}, ${c.quantity})
+        ON CONFLICT DO NOTHING
+      `;
       savedCount++;
     }
 
